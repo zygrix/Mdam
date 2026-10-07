@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Job Command Center</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            slateBg: '#0F172A',
+            slateCard: '#1E293B',
+            slateBorder: '#334155',
+            mutedText: '#94A3B8',
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slateBg text-slate-100 font-sans antialiased min-h-screen p-4 md:p-8">
+
+  <!-- TOP NAVBAR -->
+  <header class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center pb-6 border-b border-slateBorder mb-8 gap-4">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+        <span>JOB COMMAND CENTER</span>
+        <span class="text-xs px-2 py-0.5 rounded bg-teal-950 text-teal-400 border border-teal-800">SaaS v1.0</span>
+      </h1>
+      <p class="text-xs text-mutedText mt-1">Personal Application Tracker & ATS AI Optimizer</p>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <!-- View Toggle -->
+      <div class="bg-slateCard p-1 rounded-lg border border-slateBorder flex items-center text-xs">
+        <button id="viewTableBtn" onclick="switchView('table')" class="px-3 py-1.5 rounded-md font-medium text-white bg-slateBg transition-all">Table</button>
+        <button id="viewKanbanBtn" onclick="switchView('kanban')" class="px-3 py-1.5 rounded-md font-medium text-mutedText hover:text-white transition-all">Kanban</button>
+      </div>
+
+      <!-- Add New Application Button -->
+      <button onclick="openAddModal()" class="bg-teal-600 hover:bg-teal-500 text-white font-medium px-4 py-2 rounded-lg text-xs transition-all shadow-lg shadow-teal-900/30 flex items-center gap-1.5">
+        <span>+</span> New Application
+      </button>
+    </div>
+  </header>
+
+  <!-- KPI SUMMARY CARDS -->
+  <main class="max-w-7xl mx-auto space-y-8">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-slateCard border border-slateBorder p-4 rounded-xl">
+        <p class="text-[10px] uppercase tracking-wider text-mutedText font-semibold">Total Tracked</p>
+        <p id="statTotal" class="text-2xl font-extrabold text-white mt-1">0</p>
+      </div>
+      <div class="bg-slateCard border border-slateBorder p-4 rounded-xl">
+        <p class="text-[10px] uppercase tracking-wider text-mutedText font-semibold">Active Applied</p>
+        <p id="statApplied" class="text-2xl font-extrabold text-sky-400 mt-1">0</p>
+      </div>
+      <div class="bg-slateCard border border-slateBorder p-4 rounded-xl">
+        <p class="text-[10px] uppercase tracking-wider text-mutedText font-semibold">Interviews</p>
+        <p id="statInterview" class="text-2xl font-extrabold text-amber-400 mt-1">0</p>
+      </div>
+      <div class="bg-slateCard border border-slateBorder p-4 rounded-xl">
+        <p class="text-[10px] uppercase tracking-wider text-mutedText font-semibold">Offers</p>
+        <p id="statOffers" class="text-2xl font-extrabold text-emerald-400 mt-1">0</p>
+      </div>
+    </div>
+
+    <!-- TABLE VIEW -->
+    <div id="tableView" class="bg-slateCard border border-slateBorder rounded-xl overflow-hidden shadow-2xl">
+      <div class="p-4 border-b border-slateBorder flex justify-between items-center">
+        <h2 class="text-sm font-semibold text-white">Application Ledger</h2>
+        <span class="text-xs text-mutedText" id="tableCount">0 Applications</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-900/50 text-[11px] font-semibold text-mutedText border-b border-slateBorder uppercase tracking-wider">
+              <th class="py-3 px-4">Status</th>
+              <th class="py-3 px-4">Job Title</th>
+              <th class="py-3 px-4">Company</th>
+              <th class="py-3 px-4">Location / Salary</th>
+              <th class="py-3 px-4">ATS Match</th>
+              <th class="py-3 px-4 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody" class="divide-y divide-slateBorder text-xs text-slate-200">
+            <!-- Dynamic rows inserted here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- KANBAN VIEW -->
+    <div id="kanbanView" class="hidden grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="bg-slateCard/40 border border-slateBorder rounded-xl p-3 flex flex-col min-h-[500px]">
+        <div class="flex justify-between items-center mb-3 pb-2 border-b border-slateBorder">
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Saved / Wishlist</span>
+          <span id="count-Saved" class="text-xs bg-slate-800 text-slate-300 px-2 py-0.5 rounded font-mono">0</span>
+        </div>
+        <div id="col-Saved" class="space-y-3 flex-1"></div>
+      </div>
+
+      <div class="bg-slateCard/40 border border-slateBorder rounded-xl p-3 flex flex-col min-h-[500px]">
+        <div class="flex justify-between items-center mb-3 pb-2 border-b border-slateBorder">
+          <span class="text-xs font-bold text-sky-400 uppercase tracking-wider">Applied</span>
+          <span id="count-Applied" class="text-xs bg-sky-950 text-sky-300 px-2 py-0.5 rounded font-mono">0</span>
+        </div>
+        <div id="col-Applied" class="space-y-3 flex-1"></div>
+      </div>
+
+      <div class="bg-slateCard/40 border border-slateBorder rounded-xl p-3 flex flex-col min-h-[500px]">
+        <div class="flex justify-between items-center mb-3 pb-2 border-b border-slateBorder">
+          <span class="text-xs font-bold text-amber-400 uppercase tracking-wider">Interviewing</span>
+          <span id="count-Interviewing" class="text-xs bg-amber-950 text-amber-300 px-2 py-0.5 rounded font-mono">0</span>
+        </div>
+        <div id="col-Interviewing" class="space-y-3 flex-1"></div>
+      </div>
+
+      <div class="bg-slateCard/40 border border-slateBorder rounded-xl p-3 flex flex-col min-h-[500px]">
+        <div class="flex justify-between items-center mb-3 pb-2 border-b border-slateBorder">
+          <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider">Offers</span>
+          <span id="count-Offer" class="text-xs bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded font-mono">0</span>
+        </div>
+        <div id="col-Offer" class="space-y-3 flex-1"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ADD APPLICATION MODAL -->
+  <div id="addModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+    <div class="bg-slateCard border border-slateBorder rounded-xl p-6 w-full max-w-md shadow-2xl">
+      <div class="flex justify-between items-center pb-3 border-b border-slateBorder mb-4">
+        <h3 class="text-base font-bold text-white">Add New Application</h3>
+        <button onclick="closeAddModal()" class="text-mutedText hover:text-white">&times;</button>
+      </div>
+      <form id="addForm" onsubmit="handleAddApp(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="block text-mutedText mb-1">Company</label>
+          <input type="text" id="inputCompany" required class="w-full bg-slateBg border border-slateBorder rounded p-2 text-white focus:outline-none focus:border-teal-500" placeholder="e.g. Stripe">
+        </div>
+        <div>
+          <label class="block text-mutedText mb-1">Job Title</label>
+          <input type="text" id="inputRole" required class="w-full bg-slateBg border border-slateBorder rounded p-2 text-white focus:outline-none focus:border-teal-500" placeholder="e.g. Product Designer">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-mutedText mb-1">Status</label>
+            <select id="inputStatus" class="w-full bg-slateBg border border-slateBorder rounded p-2 text-white focus:outline-none focus:border-teal-500">
+              <option value="Saved">Saved</option>
+              <option value="Applied" selected>Applied</option>
+              <option value="Interviewing">Interviewing</option>
+              <option value="Offer">Offer</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-mutedText mb-1">ATS Match %</label>
+            <input type="number" id="inputAts" min="0" max="100" value="85" class="w-full bg-slateBg border border-slateBorder rounded p-2 text-white focus:outline-none focus:border-teal-500">
+          </div>
+        </div>
+        <div>
+          <label class="block text-mutedText mb-1">Location & Salary</label>
+          <input type="text" id="inputLoc" class="w-full bg-slateBg border border-slateBorder rounded p-2 text-white focus:outline-none focus:border-teal-500" placeholder="e.g. Remote • $130,000">
+        </div>
+        <div class="flex justify-end gap-2 pt-4">
+          <button type="button" onclick="closeAddModal()" class="px-3 py-2 bg-slate-800 text-slate-300 rounded hover:bg-slate-700">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-teal-600 text-white font-medium rounded hover:bg-teal-500">Save Application</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- AI PROMPT DRAWER -->
+  <div id="aiDrawer" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+    <div class="bg-slateCard border border-slateBorder rounded-xl p-6 w-full max-w-lg shadow-2xl">
+      <div class="flex justify-between items-center pb-3 border-b border-slateBorder mb-4">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <span>⚡ AI Resume Match Prompt</span>
+        </h3>
+        <button onclick="closeAiDrawer()" class="text-mutedText hover:text-white">&times;</button>
+      </div>
+      <p class="text-xs text-mutedText mb-3">Copy this tailored prompt directly into ChatGPT, Claude, or Gemini alongside your resume and job description:</p>
+      <div class="bg-slateBg p-3 rounded border border-slateBorder text-[11px] font-mono text-slate-300 space-y-2 relative max-h-60 overflow-y-auto" id="aiPromptContent">
+        <!-- Dynamic prompt text -->
+      </div>
+      <div class="flex justify-between items-center pt-4">
+        <span id="copyToast" class="text-xs text-emerald-400 hidden">✓ Prompt copied to clipboard!</span>
+        <button onclick="copyPromptText()" class="ml-auto px-4 py-2 bg-sky-600 text-white font-medium text-xs rounded hover:bg-sky-500 transition-all">Copy Prompt</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // INITIAL SEED DATA
+    let apps = [
+      { id: 1, company: 'Figma', role: 'Senior UX Strategist', status: 'Saved', loc: 'Remote • $150k', ats: 88 },
+      { id: 2, company: 'Spotify', role: 'Product Designer', status: 'Applied', loc: 'Remote • $130k', ats: 94 },
+      { id: 3, company: 'Stripe', role: 'Marketing Specialist', status: 'Applied', loc: 'San Francisco, CA', ats: 85 },
+      { id: 4, company: 'Airbnb', role: 'Senior Software Eng.', status: 'Interviewing', loc: 'Remote • $180k', ats: 82 },
+      { id: 5, company: 'Slack', role: 'Lead UI Developer', status: 'Offer', loc: 'Remote • $165k', ats: 96 }
+    ];
+
+    let currentView = 'table';
+
+    function render() {
+      // Stats Update
+      document.getElementById('statTotal').innerText = apps.length;
+      document.getElementById('statApplied').innerText = apps.filter(a => a.status === 'Applied').length;
+      document.getElementById('statInterview').innerText = apps.filter(a => a.status === 'Interviewing').length;
+      document.getElementById('statOffers').innerText = apps.filter(a => a.status === 'Offer').length;
+      document.getElementById('tableCount').innerText = `${apps.length} Applications`;
+
+      // Render Table
+      const tableBody = document.getElementById('tableBody');
+      tableBody.innerHTML = apps.map(app => `
+        <tr class="hover:bg-slate-800/40 transition-colors">
+          <td class="py-3 px-4">${getStatusPill(app.status)}</td>
+          <td class="py-3 px-4 font-medium text-white">${app.role}</td>
+          <td class="py-3 px-4 text-mutedText">${app.company}</td>
+          <td class="py-3 px-4 text-mutedText">${app.loc}</td>
+          <td class="py-3 px-4"><span class="font-semibold text-emerald-400">${app.ats}%</span></td>
+          <td class="py-3 px-4 text-right">
+            <button onclick="openAiDrawer('${app.company}', '${app.role}')" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-sky-400 px-2.5 py-1 rounded border border-slateBorder">⚡ AI Prompt</button>
+            <button onclick="deleteApp(${app.id})" class="text-[11px] text-red-400 hover:text-red-300 ml-2">&times;</button>
+          </td>
+        </tr>
+      `).join('');
+
+      // Render Kanban Columns
+      ['Saved', 'Applied', 'Interviewing', 'Offer'].forEach(colStatus => {
+        const colContainer = document.getElementById(`col-${colStatus}`);
+        const countSpan = document.getElementById(`count-${colStatus}`);
+        const filtered = apps.filter(a => a.status === colStatus);
+        
+        countSpan.innerText = filtered.length;
+        colContainer.innerHTML = filtered.map(app => `
+          <div class="bg-slateCard border border-slateBorder rounded-lg p-3 space-y-2 hover:border-slate-500 transition-all shadow-md">
+            <div class="flex justify-between items-start">
+              <span class="text-[10px] font-bold text-mutedText uppercase">${app.company}</span>
+              <span class="text-[10px] text-emerald-400 font-mono font-bold">${app.ats}% Match</span>
+            </div>
+            <h4 class="text-xs font-bold text-white">${app.role}</h4>
+            <p class="text-[10px] text-slate-400">${app.loc}</p>
+            <div class="pt-2 border-t border-slateBorder flex justify-between items-center">
+              <button onclick="openAiDrawer('${app.company}', '${app.role}')" class="text-[10px] text-sky-400 hover:underline">⚡ AI Prompt</button>
+              <select onchange="updateStatus(${app.id}, this.value)" class="bg-slateBg border border-slateBorder rounded text-[10px] p-0.5 text-slate-300">
+                <option value="Saved" ${app.status==='Saved'?'selected':''}>Saved</option>
+                <option value="Applied" ${app.status==='Applied'?'selected':''}>Applied</option>
+                <option value="Interviewing" ${app.status==='Interviewing'?'selected':''}>Interviewing</option>
+                <option value="Offer" ${app.status==='Offer'?'selected':''}>Offer</option>
+              </select>
+            </div>
+          </div>
+        `).join('');
+      });
+    }
+
+    function getStatusPill(status) {
+      const maps = {
+        'Saved': '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">Saved</span>',
+        'Applied': '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-950 text-sky-300 border border-sky-800">Applied</span>',
+        'Interviewing': '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-950 text-amber-300 border border-amber-800">Interviewing</span>',
+        'Offer': '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">Offer</span>'
+      };
+      return maps[status] || status;
+    }
+
+    function switchView(view) {
+      currentView = view;
+      if (view === 'table') {
+        document.getElementById('tableView').classList.remove('hidden');
+        document.getElementById('kanbanView').classList.add('hidden');
+        document.getElementById('viewTableBtn').className = "px-3 py-1.5 rounded-md font-medium text-white bg-slateBg transition-all";
+        document.getElementById('viewKanbanBtn').className = "px-3 py-1.5 rounded-md font-medium text-mutedText hover:text-white transition-all";
+      } else {
+        document.getElementById('tableView').classList.add('hidden');
+        document.getElementById('kanbanView').classList.remove('hidden');
+        document.getElementById('viewKanbanBtn').className = "px-3 py-1.5 rounded-md font-medium text-white bg-slateBg transition-all";
+        document.getElementById('viewTableBtn').className = "px-3 py-1.5 rounded-md font-medium text-mutedText hover:text-white transition-all";
+      }
+    }
+
+    function openAddModal() { document.getElementById('addModal').style.display = 'flex'; }
+    function closeAddModal() { document.getElementById('addModal').style.display = 'none'; }
+
+    function handleAddApp(e) {
+      e.preventDefault();
+      const newApp = {
+        id: Date.now(),
+        company: document.getElementById('inputCompany').value,
+        role: document.getElementById('inputRole').value,
+        status: document.getElementById('inputStatus').value,
+        ats: parseInt(document.getElementById('inputAts').value),
+        loc: document.getElementById('inputLoc').value || 'Remote'
+      };
+      apps.push(newApp);
+      closeAddModal();
+      document.getElementById('addForm').reset();
+      render();
+    }
+
+    function updateStatus(id, newStatus) {
+      const app = apps.find(a => a.id === id);
+      if (app) { app.status = newStatus; render(); }
+    }
+
+    function deleteApp(id) {
+      apps = apps.filter(a => a.id !== id);
+      render();
+    }
+
+    function openAiDrawer(company, role) {
+      const promptText = `Act as an expert ATS Recruiter. Analyze my resume against the posting for ${role} at ${company}. Highlight missing keywords and rewrite my top 3 bullet points to maximize my ATS score above 90%.`;
+      document.getElementById('aiPromptContent').innerText = promptText;
+      document.getElementById('aiDrawer').style.display = 'flex';
+      document.getElementById('copyToast').classList.add('hidden');
+    }
+
+    function closeAiDrawer() { document.getElementById('aiDrawer').style.display = 'none'; }
+
+    function copyPromptText() {
+      const text = document.getElementById('aiPromptContent').innerText;
+      navigator.clipboard.writeText(text);
+      document.getElementById('copyToast').classList.remove('hidden');
+    }
+
+    // Initial Render
+    render();
+  </script>
+</body>
+</html>
